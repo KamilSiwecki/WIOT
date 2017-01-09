@@ -61,18 +61,20 @@ stk<-as.double(startK)-6
 print(stk) # tutaj znalezlismy pierwszy indeks kraju, do ktorego idzie przepływ
 
 ###test wykresu
+# #####
+# A[stw-1,stw+3]=(A[stw-1,stk+3]+0.01)
+# W<-solve(I-A)%*%Y
+# W<-as.vector(W)
+# E<-t(t(A)*W)
+# s<-colSums(E)
 
-A[stw-1,stw+3]=(A[stw-1,stk+3]+0.01)
-W<-solve(I-A)%*%Y
-W<-as.vector(W)
-E<-t(t(A)*W)
-s<-colSums(E)
-v<-W-s
-roz<-(vaa-v)
-print(paste(excel[stw+5,3],  excel[stw+5,2], "to sector",excel[5,stk+3], excel[4,stk+3]))
-print(wykr<-roz[stk:(stk+55)])
-plot(wykr)
-barplot(wykr)
+# v<-W-s
+# roz<-(vaa-v)
+# print(paste(excel[stw+5,3],  excel[stw+5,2], "to sector",excel[5,stk+3], excel[4,stk+3]))
+# print(wykr<-roz[stk:(stk+55)])
+# plot(wykr)
+# barplot(wykr)#####
+
 
 
 n=1
@@ -114,7 +116,8 @@ dVA=dVA*100
 namArg=vector()
 
 namArg=paste(rep((1:5), times=c(5,5,5,5,5)),rep(c(1:5),5))
-print(namArg)
+print(namArg) 
+### indeksy przepływów - 1 2 oznacza 1sektor do 2sektora  etc
 
 barplot(dVA[1:25],col=rainbow(5),xlab="przepływy" ,names.arg = namArg, main="Wykres zmian wartosci dodanej w efekcie zmiany przeplywu")
 
