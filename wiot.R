@@ -111,7 +111,7 @@ for (i in 1:5){
   
 }
 
-dVA=dVA*100
+#dVA=dVA*100
 
 namArg=vector()
 
