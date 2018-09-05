@@ -1,5 +1,8 @@
+
 library(openxlsx)
-excel <- read.xlsx("C:/Users/Kamil/Documents/I-O WIOD PL/WIOT2014_Nov16_ROW.xlsx",colNames=F,rowNames = FALSE)
+system.time({
+
+excel <- read.xlsx("C:/Users/Kamil/Desktop/WIOT2014_Nov16_ROW.xlsx",colNames=F,rowNames = FALSE)
 
 # excel[1855:1910,1853:1908]
 excel[11,3]
@@ -9,9 +12,12 @@ excel[11,3]
 K<-data.matrix(excel[7:2470,5:2468])
 mode(K)
 
+print(K)
 
 X<-data.matrix(excel[2478, 5:2468])
 X<-as.vector(X)
+print(X)
+
 
 
 
@@ -30,10 +36,11 @@ T<-solve(I-A)%*%Y
 print(T[11:15])
 print(X[11:15])
 
+
 # print(t(t(A)*X))
 
 
-vaa<-X-as.vector(colSums(K)) # wektorek wartości dodanej
+vaa<-X-as.vector(colSums(K)) # wektorek wartosci dodanej
 
 Z<-A
 
@@ -47,33 +54,24 @@ print(LKw[100])
 LKk<-excel[5,5:2468]
 print(LKk[1900])
 
+# print(kraje<-unique(excel[7:2470,3]))
+# length(kraje)
 
-#### przepływy wybrany kraj -> wybrany kraj ##########
 
-print(nk<-K[LKw=="POL",LKk=="POL"])
+#### przeplywy wybrany kraj -> wybrany kraj ##########
+
+print(nk<-K[LKw=="CHN",LKk=="POL"])
+print(tnk<-K[LKk=="POL",]) #stworzylismy macierz z wybranymi na odwrot krajami, 
+#zeby dostac sie do indeksu - po kolmnach byl z 'x' na poczatku
 
 print(startW<-row.names(nk)[1])
 stw<-as.double(startW)-6
-mode(st) # tutaj znaleźliśmy, dla jakiego indeksu zaczynamy w kraju z ktorego idzie przepływ
+mode(stw) # tutaj znalezlismy, dla jakiego indeksu zaczynamy w kraju z ktorego idzie przeplyw
 
-print(startK<-row.names(nk)[1])
+
+print(startK<-row.names(tnk)[1])
 stk<-as.double(startK)-6
-print(stk) # tutaj znalezlismy pierwszy indeks kraju, do ktorego idzie przepływ
-
-###test wykresu
-# #####
-# A[stw-1,stw+3]=(A[stw-1,stk+3]+0.01)
-# W<-solve(I-A)%*%Y
-# W<-as.vector(W)
-# E<-t(t(A)*W)
-# s<-colSums(E)
-
-# v<-W-s
-# roz<-(vaa-v)
-# print(paste(excel[stw+5,3],  excel[stw+5,2], "to sector",excel[5,stk+3], excel[4,stk+3]))
-# print(wykr<-roz[stk:(stk+55)])
-# plot(wykr)
-# barplot(wykr)#####
+print(stk) # tutaj znalezlismy pierwszy indeks kraju, do ktorego idzie przeplyw
 
 
 
@@ -84,16 +82,18 @@ procVAa<-vector()
 dVA<-vector() ### wektor zmiany procentowego udzialu warotsci dodanej PL w stos do VA calego swiata
 
 
-for (i in 1:5){
-  for(j in 1:5){
-    A[stw-1+i,stw-1+j]=(A[stw-1+i,stk-1+j]-0.01)
-    W<-solve(I-A)%*%Y
+for (i in 1:56){
+  for(j in 1:56){
+    A[stw-1+i,stw-1+j]=(A[stk-1+i,stk-1+j]-0.01)
+    # W<-solve(I-A)%*%Y
+    W<-qr(I-A)
+    W<-solve.qr(W, Y)
     W<-as.vector(W)
     E<-t(t(A)*W)
     s<-colSums(E)
     v<-W-s
     roz<-(v-vaa)
-    print(przeplyw[n]<-(paste(excel[stw+5+i,3],  excel[stw+5+i,2], "to sector",excel[5,stk+3+j], excel[4,stk+3+j])))
+    print(przeplyw[n]<-(paste(excel[stw+5+i,3],  excel[stw+5+i,2], "to sector ",excel[5,stk+3+j], excel[4,stk+3+j])))
     procVA[n]<-(sum(v[stk:(stk+55)]))
     all<-sum(v)
     print(a<-(procVA[n]/all))
@@ -103,31 +103,37 @@ for (i in 1:5){
     print(b<-(procVAa[n]/ALL))
     
     print(dVA[n]<-100*(a-b)/b) ## *100 zeby bylo w procentach
-    A<-Z #to dlatego, żeby po każdej zmianie macierzy A wracał do jej początkowej wartości
+    dane<-data.frame(przeplyw[n],dVA[n])
+    write.table(dane,file="CHN.csv", row.names = FALSE, col.names=FALSE, sep=",", append = TRUE)
+    
+    A<-Z #to dlatego, �eby po ka�dej zmianie macierzy A wraca�o do jej poczatkowej wartosci
     # przed kolejnym obiegiem petli
     n=n+1
     
   }
   
 }
-
+})
 #dVA=dVA*100
 
 namArg=vector()
 
 namArg=paste(rep((1:5), times=c(5,5,5,5,5)),rep(c(1:5),5))
 print(namArg) 
-### indeksy przepływów - 1 2 oznacza 1sektor do 2sektora  etc
+### indeksy przeplywow - 1 2 oznacza 1sektor do 2sektora  etc
+print(dVA)
 
-barplot(dVA[1:25],col=rainbow(5),xlab="przepływy" ,names.arg = namArg, main="Wykres zmian wartosci dodanej w efekcie zmiany przeplywu")
+tytul<-"Wykres zmian wartosci dodanej w efekcie zmiany przeplywu"
 
+barplot(dVA[1:25],col=rainbow(5),density=45, xlab="przeplywy" ,names.arg = namArg, main=tytul)
 
+z<-data.frame(namArg, dVA)
 
+View(z)
 
+#### Ju� WYBRANE PPRZEPLYWY -  DLA POLSKI#####
 
-#### JUŻ WYBRANE PRZEPŁYWY -  DLA POLSKI#####
-
-#### PRZEPLYWY DO SEKTORÓW POLSKICH ####
+#### PRZEPLYWY DO SEKTOROW POLSKICH ####
 for (i in 1:2464){
   for(j in 1849:1904){
     A[i,j]=(A[i,j]+0.01)
@@ -139,15 +145,14 @@ for (i in 1:2464){
     roz<-(vaa-v)
     print(paste(excel[6+i,3],  excel[6+i,2]))
     print(roz[abs(roz)>10])
-    A<-Z #to dlatego, żeby po każdej zmianie macierzy A wracał do jej początkowej wartości
-    # przed kolejnym obiegiem petli
+    A<-Z 
     
   }
   
 }
 
 
-#### PRZEPŁYWY Z SEKTORÓW POLSKICH #####
+#### PRZEPLYWY Z SEKTOROW POLSKICH #####
 
 for (i in 1849:1904){
   for(j in 1:2464){
@@ -160,9 +165,18 @@ for (i in 1849:1904){
     roz<-(vaa-v)
     print(paste(excel[6+i,3],  excel[6+i,2], "to sector",excel[5,4+j], excel[4,4+j]))
     print(roz[abs(roz)>10])
-    A<-Z #to dlatego, żeby po każdej zmianie macierzy A wracał do jej początkowej wartości
-    # przed kolejnym obiegiem petli
+    A<-Z 
     
   }
   
 }
+
+
+
+
+
+
+
+
+
+
